@@ -62,6 +62,9 @@ ksocket_t ksocket(int domain, int type, int protocol)
 		return NULL;
 	}
 
+#ifdef BONUS
+	sk->flags |= FASYNC;
+#endif
 	/*
 	if (sk && sk->sk) {
 		if (sk->sk->sk_data_ready) {
@@ -135,6 +138,10 @@ ksocket_t kaccept(ksocket_t socket, struct sockaddr *address, int *address_len)
 		return NULL;
 	if (!new_sk)
 		return NULL;
+	
+#ifdef BONUS
+	sk->flags |= FASYNC;
+#endif
 	
 	new_sk->type = sk->type;
 	new_sk->ops = sk->ops;
