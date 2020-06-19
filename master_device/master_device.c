@@ -29,6 +29,7 @@
 #define master_IOCTL_MMAP 0x12345678
 #define master_IOCTL_EXIT 0x12345679
 #define BUF_SIZE 512
+#define MAP_SIZE (PAGE_SIZE * 10)
 
 typedef struct socket * ksocket_t;
 
@@ -68,11 +69,11 @@ static struct file_operations master_fops = {
 	.unlocked_ioctl = master_ioctl,
 	.open = master_open,
 	.write = send_msg,
-	.release = master_close
+	.release = master_close,
 	.mmap = my_mmap
 };
 
-struct vm_operations_struct map_vm_ops = {
+struct vm_operations_struct mmap_vm_ops = {
 	.open = my_mmap_open,
 	.close = my_mmap_close
 };
@@ -147,11 +148,13 @@ static void __exit master_exit(void)
 
 int master_close(struct inode *inode, struct file *filp)
 {
+	kfree(filp->private_data);
 	return 0;
 }
 
 int master_open(struct inode *inode, struct file *filp)
 {
+	filp->private_data = kmalloc(MAP_SIZE, GFP_KERNEL);
 	return 0;
 }
 
@@ -223,7 +226,8 @@ static ssize_t send_msg(struct file *file, const char __user *buf, size_t count,
 }
 
 static int my_mmap(struct file* fp, struct vm_area_struct* vma){
-	if(remap_pfn_range(vma, vma->vm_start, vma->vm_pgoff, vma->vm_end-vma->vm_start, vma->vm_page_port)){
+	vma->vm_pgoff = virt_to_phys(fp->private_data)>>PAGE_SHIFT;
+	if(remap_pfn_range(vma, vma->vm_start, vma->vm_pgoff, vma->vm_end-vma->vm_start, vma->vm_page_prot)){
 		return -EIO;
 	}
 	vma->vm_flags |= VM_RESERVED;
