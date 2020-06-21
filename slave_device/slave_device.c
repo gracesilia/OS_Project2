@@ -95,11 +95,11 @@ static int __init slave_init(void)
 
 	//register the device
 	if( (ret = misc_register(&slave_dev)) < 0){
-		printk(KERN_ERR "misc_register failed!\n");
+		//printk(KERN_ERR "misc_register failed!\n");
 		return ret;
 	}
 
-	printk(KERN_INFO "slave has been registered!\n");
+	//printk(KERN_INFO "slave has been registered!\n");
 
 	return 0;
 }
@@ -107,7 +107,7 @@ static int __init slave_init(void)
 static void __exit slave_exit(void)
 {
 	misc_deregister(&slave_dev);
-	printk(KERN_INFO "slave exited!\n");
+	//printk(KERN_INFO "slave exited!\n");
 	debugfs_remove(file1);
 }
 
@@ -142,11 +142,11 @@ static long slave_ioctl(struct file *file, unsigned int ioctl_num, unsigned long
 	old_fs = get_fs();
 	set_fs(KERNEL_DS);
 
-    printk("slave device ioctl");
+    //printk("slave device ioctl");
 
 	switch(ioctl_num){
 		case slave_IOCTL_CREATESOCK:// create socket and connect to master
-            printk("slave device ioctl create socket");
+            //printk("slave device ioctl create socket");
 
 			if(copy_from_user(ip, (char*)ioctl_param, sizeof(ip)))
 				return -ENOMEM;
@@ -160,21 +160,21 @@ static long slave_ioctl(struct file *file, unsigned int ioctl_num, unsigned long
 			addr_len = sizeof(struct sockaddr_in);
 
 			sockfd_cli = ksocket(AF_INET, SOCK_STREAM, 0);
-			printk("sockfd_cli = 0x%p  socket is created\n", sockfd_cli);
+			//printk("sockfd_cli = 0x%p  socket is created\n", sockfd_cli);
 			if (sockfd_cli == NULL)
 			{
-				printk("socket failed\n");
+				//printk("socket failed\n");
 				return -1;
 			}
 			if (kconnect(sockfd_cli, (struct sockaddr*)&addr_srv, addr_len) < 0)
 			{
-				printk("connect failed\n");
+				//printk("connect failed\n");
 				return -1;
 			}
 			tmp = inet_ntoa(&addr_srv.sin_addr);
-			printk("connected to : %s %d\n", tmp, ntohs(addr_srv.sin_port));
+			//printk("connected to : %s %d\n", tmp, ntohs(addr_srv.sin_port));
 			kfree(tmp);
-			printk("kfree(tmp)");
+			//printk("kfree(tmp)");
 			ret = 0;
 			break;
 		case slave_IOCTL_MMAP:
@@ -184,7 +184,7 @@ static long slave_ioctl(struct file *file, unsigned int ioctl_num, unsigned long
 		case slave_IOCTL_EXIT:
 			if(kclose(sockfd_cli) == -1)
 			{
-				printk("kclose cli error\n");
+				//printk("kclose cli error\n");
 				return -1;
 			}
 			ret = 0;

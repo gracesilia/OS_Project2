@@ -92,11 +92,11 @@ static int __init master_init(void)
 
 	//register the device
 	if( (ret = misc_register(&master_dev)) < 0){
-		printk(KERN_ERR "misc_register failed!\n");
+		//printk(KERN_ERR "misc_register failed!\n");
 		return ret;
 	}
 
-	printk(KERN_INFO "master has been registered!\n");
+	//printk(KERN_INFO "master has been registered!\n");
 
 	old_fs = get_fs();
 	set_fs(KERNEL_DS);
@@ -111,23 +111,23 @@ static int __init master_init(void)
 	addr_len = sizeof(struct sockaddr_in);
 
 	sockfd_srv = ksocket(AF_INET, SOCK_STREAM, 0);
-	printk("sockfd_srv = 0x%p  socket is created \n", sockfd_srv);
+	//printk("sockfd_srv = 0x%p  socket is created \n", sockfd_srv);
 	if (sockfd_srv == NULL)
 	{
-		printk("socket failed\n");
+		//printk("socket failed\n");
 		return -1;
 	}
 	if (kbind(sockfd_srv, (struct sockaddr *)&addr_srv, addr_len) < 0)
 	{
-		printk("bind failed\n");
+		//printk("bind failed\n");
 		return -1;
 	}
 	if (klisten(sockfd_srv, 10) < 0)
 	{
-		printk("listen failed\n");
+		//printk("listen failed\n");
 		return -1;
 	}
-    printk("master_device init OK\n");
+    //printk("master_device init OK\n");
 	set_fs(old_fs);
 	return 0;
 }
@@ -135,14 +135,14 @@ static int __init master_init(void)
 static void __exit master_exit(void)
 {
 	misc_deregister(&master_dev);
-    printk("misc_deregister\n");
+    //printk("misc_deregister\n");
 	if(kclose(sockfd_srv) == -1)
 	{
-		printk("kclose srv error\n");
+		//printk("kclose srv error\n");
 		return ;
 	}
 	set_fs(old_fs);
-	printk(KERN_INFO "master exited!\n");
+	//printk(KERN_INFO "master exited!\n");
 	debugfs_remove(file1);
 }
 
@@ -176,14 +176,14 @@ static long master_ioctl(struct file *file, unsigned int ioctl_num, unsigned lon
 			sockfd_cli = kaccept(sockfd_srv, (struct sockaddr *)&addr_cli, &addr_len);
 			if (sockfd_cli == NULL)
 			{
-				printk("accept failed\n");
+				//printk("accept failed\n");
 				return -1;
 			}
 			else
-				printk("aceept sockfd_cli = 0x%p\n", sockfd_cli);
+				//printk("aceept sockfd_cli = 0x%p\n", sockfd_cli);
 
 			tmp = inet_ntoa(&addr_cli.sin_addr);
-			printk("got connected from : %s %d\n", tmp, ntohs(addr_cli.sin_port));
+			//printk("got connected from : %s %d\n", tmp, ntohs(addr_cli.sin_port));
 			kfree(tmp);
 			ret = 0;
 			break;
@@ -193,7 +193,7 @@ static long master_ioctl(struct file *file, unsigned int ioctl_num, unsigned lon
 		case master_IOCTL_EXIT:
 			if(kclose(sockfd_cli) == -1)
 			{
-				printk("kclose cli error\n");
+				//printk("kclose cli error\n");
 				return -1;
 			}
 			ret = 0;
