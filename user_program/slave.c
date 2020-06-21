@@ -17,16 +17,16 @@
 #define MAPSZ 40960
 char buf[512], method[50], ip[50], number_of_file[50];
 int i, dev_fd, fd, num_of_file = 0; // the fd for the device and the fd for the input file
-double transmissionTime;			//calulate the time between the device is opened and it is closed
+double transmissionTime, total_transmissionTime = 0.0;			//calulate the time between the device is opened and it is closed
 void *mapped_mem, *kernel_mem;
-size_t fileSize = 0;
+size_t fileSize = 0, total_fileSize =0;
 ssize_t val;
 struct timeval start;
 struct timeval end;
 
 void ioctlerror()
 {
-	fprintf(stderr, "ioctl error\n");
+	fprintf(stderr, "ioclt error\n");
 	return;
 }
 
@@ -54,7 +54,7 @@ int checkerror3()
 {
 	if (ioctl(dev_fd, slave_IOCTL_CREATESOCK, ip) == -1)
 	{ //slave_IOCTL_CREATESOCK : connect to master in the device
-		fprintf(stderr, "ioctl create slave socket error\n");
+		fprintf(stderr, "ioclt create slave socket error\n");
 		return 1;
 	}
 	return 0;
@@ -64,7 +64,7 @@ int checkerror4()
 {
 	if (ioctl(dev_fd, slave_IOCTL_EXIT) == -1)
 	{ // end receiving data, close the connection
-		fprintf(stderr, "ioctl client exits error\n");
+		fprintf(stderr, "ioclt client exits error\n");
 		return 1;
 	}
 	return 0;
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
 
 		gettimeofday(&start, NULL);
 
-		writesuccess();
+		//writesuccess();
 		if (strcmp(method, "fcntl") == 0)
 			callfcntl();
 		else if (strcmp(method, "mmap") == 0)
@@ -171,10 +171,12 @@ int main(int argc, char *argv[])
 
 		gettimeofday(&end, NULL);
 		transmissionTime = (end.tv_usec - start.tv_usec) * 0.0001 + (end.tv_sec - start.tv_sec) * 1000;
-		printf("Slave: Transmission time: %lf ms, File size: %ld bytes\n", transmissionTime, fileSize);
+		total_transmissionTime += transmissionTime;
+		total_fileSize += fileSize;
 
 		close(fd);
 		close(dev_fd);
 	}
+	printf("Transmission time: %lf ms, File size: %ld bytes\n", total_transmissionTime, total_fileSize);
 	return 0;
 }
